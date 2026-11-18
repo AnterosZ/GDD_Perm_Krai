@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="./icon.jpeg">
+<title>Сумма активных температур Пермского края</title>
+<style>
+  :root {
+    --green-dark: #1b5e20;
+    --green: #2e7d32;
+    --green-light: #a5d6a7;
+    --ink: #263238;
+    --muted: #607d8b;
+    --card: #ffffff;
+    --bg: #f4f7f5;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 55%, #43a047 100%);
+    color: #fff;
+    padding: 34px 6vw 26px;
+  }
+  header h1 { font-size: clamp(1.5rem, 3.2vw, 2.4rem); font-weight: 700; letter-spacing: .3px; }
+  header p { margin-top: 8px; opacity: .92; font-size: 1.02rem; max-width: 760px; }
+  .header-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+  .header-meta span {
+    background: rgba(255,255,255,.16);
+    border: 1px solid rgba(255,255,255,.35);
+    padding: 5px 14px; border-radius: 999px; font-size: .85rem;
+  }
+  main { flex: 1; padding: 36px 6vw 40px; max-width: 1400px; margin: 0 auto; width: 100%; }
+  .grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 34px; align-items: start; }
+  @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
+  .intro h2 {
+    font-size: 1.25rem; color: var(--green-dark);
+    margin: 22px 0 8px; display: flex; align-items: center; gap: 8px;
+  }
+  .intro h2::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--green); flex: none; }
+  .intro p, .intro li { line-height: 1.65; font-size: .98rem; color: #37474f; }
+  .intro ul { margin: 6px 0 0 20px; }
+  .tiles {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px; margin-top: 26px;
+  }
+  .tile {
+    background: var(--card); border-radius: 14px; padding: 14px 14px 12px;
+    box-shadow: 0 2px 10px rgba(27,94,32,.08);
+    border-top: 3px solid var(--green);
+  }
+  .tile .num { font-size: 1.3rem; font-weight: 700; color: var(--green-dark); white-space: nowrap; }
+  .tile .lbl { font-size: .78rem; color: var(--muted); margin-top: 4px; line-height: 1.35; }
+  .chart-card {
+    background: var(--card); border-radius: 16px; padding: 22px 22px 16px;
+    box-shadow: 0 4px 18px rgba(27,94,32,.10);
+  }
+  .chart-card h3 { font-size: 1.05rem; color: var(--ink); margin-bottom: 4px; }
+  .chart-card .note { font-size: .82rem; color: var(--muted); margin-bottom: 12px; }
+  .chart-wrap { position: relative; height: 430px; }
+  @media (max-width: 700px) { .chart-wrap { height: 320px; } }
+  canvas { max-width: 100%; }
+  .btn-row { display: flex; justify-content: center; margin-top: 22px; }
+  .btn {
+    display: inline-block; background: linear-gradient(135deg, #2e7d32, #43a047);
+    color: #fff; text-decoration: none; font-weight: 600; font-size: 1.02rem;
+    padding: 14px 34px; border-radius: 12px; box-shadow: 0 4px 14px rgba(46,125,50,.35);
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 7px 20px rgba(46,125,50,.45); }
+  footer {
+    text-align: center; padding: 18px; font-size: .85rem; color: var(--muted);
+    border-top: 1px solid #dfe7e2; background: #fbfdfb;
+  }
+  footer a { color: var(--green); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Сумма активных температур Пермского края</h1>
+  <p>Климатический мониторинг 1940–2025 гг. Данные: open-meteo.com</p>
+  <div class="header-meta">
+    <span>86 лет наблюдений</span>
+    <span>97 точек по краю</span>
+    <span>Данные: open-meteo.com</span>
+  </div>
+</header>
+
+<main>
+  <div class="grid">
+    <section class="intro">
+      <h2>Что такое сумма активных температур</h2>
+      <p><b>Сумма активных температур (САТ)</b> — климатический показатель, равный сумме среднесуточных
+      температур воздуха за все дни со значениями выше +10&nbsp;°C. Именно при такой температуре
+      проходит вегетация большинства сельскохозяйственных культур, поэтому САТ широко применяется
+      в агроклиматическом районировании: по ней определяют, какие культуры и сорта успевают
+      вызревать в конкретной местности.</p>
+
+      <h2>Как считались данные</h2>
+      <p>По всей территории Пермского края на регулярной сетке размещены 97 точек. Для каждой точки
+      по данным открытого архива open-meteo.com рассчитана САТ за каждый год с 1940 по 2025-й,
+      а затем значения всех точек усреднены — так получается интегральная картина по всему краю.</p>
+
+      <h2>Что видно на графике</h2>
+      <ul>
+        <li>каждый столбец — средняя по краю САТ конкретного года;</li>
+        <li>оранжевая пунктирная линия — линейный тренд: в среднем САТ растёт примерно на
+        24&nbsp;°C·сут за десятилетие;</li>
+        <li>разброс между годами велик (от 1160 до 2227&nbsp;°C·сут), но средний уровень
+        последних 20 лет заметно выше, чем в середине XX века.</li>
+      </ul>
+
+      <div class="tiles">
+        <div class="tile"><div class="num">1708 °C·сут</div><div class="lbl">Среднее за 1940–2025</div></div>
+        <div class="tile"><div class="num">1160 °C·сут</div><div class="lbl">Минимум (1941 г.)</div></div>
+        <div class="tile"><div class="num">2227 °C·сут</div><div class="lbl">Максимум (1957 г.)</div></div>
+        <div class="tile"><div class="num">+24,4</div><div class="lbl">Рост тренда, °C·сут за 10 лет</div></div>
+        <div class="tile"><div class="num">1842 °C·сут</div><div class="lbl">Среднее за 2006–2025</div></div>
+        <div class="tile"><div class="num">86 × 97</div><div class="lbl">Лет × точек наблюдения</div></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="chart-card">
+        <h3>Динамика САТ по годам, 1940–2025</h3>
+        <div class="note">Наведите курсор на столбец, чтобы увидеть точное значение за год. Оранжевая пунктирная линия — линейный тренд.</div>
+        <div class="chart-wrap">
+          <canvas id="satChart"></canvas>
+        </div>
+        <div class="btn-row">
+          <a class="btn" href="map.html">Открыть интерактивную карту →</a>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  Климатический мониторинг 1940–2025 гг. · Данные: <a href="https://open-meteo.com" target="_blank" rel="noopener">open-meteo.com</a>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+  var YEARS = [1940, 1941, 1942, 1943, 1944, 1945, 1946, 1947, 1948, 1949, 1950, 1951, 1952, 1953, 1954, 1955, 1956, 1957, 1958, 1959, 1960, 1961, 1962, 1963, 1964, 1965, 1966, 1967, 1968, 1969, 1970, 1971, 1972, 1973, 1974, 1975, 1976, 1977, 1978, 1979, 1980, 1981, 1982, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
+  var VALUES = [1814.1, 1160.1, 1490.6, 1772.3, 1494.9, 1516.2, 1556.1, 1491.3, 1794.1, 1642.7, 1553.7, 2008.7, 2013.8, 2050.1, 1947.2, 1771.6, 1622.0, 2227.1, 1536.7, 1646.5, 1659.5, 1656.3, 1731.7, 1744.8, 1735.3, 1558.9, 1795.6, 1865.7, 1347.5, 1180.1, 1631.4, 1405.3, 1524.1, 1553.9, 1847.5, 1685.5, 1701.0, 1949.7, 1176.4, 1418.2, 1431.6, 1888.8, 1656.7, 1555.8, 1645.1, 1593.0, 1310.2, 1833.6, 1946.9, 1931.1, 1562.2, 1982.4, 1382.2, 1600.1, 1529.6, 2063.4, 1506.5, 1483.1, 1828.8, 1591.4, 1798.0, 1732.8, 1257.7, 1891.5, 1871.4, 1928.4, 1722.0, 1743.9, 1639.3, 1779.0, 2018.6, 1889.1, 2098.5, 1959.5, 1650.5, 1730.7, 2119.4, 1513.2, 1667.6, 1608.0, 1808.7, 2026.2, 1856.9, 2133.9, 1933.0, 1939.8];
+  var TREND = [1604.6, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 1812.1];
+
+  var ctx = document.getElementById('satChart').getContext('2d');
+  var grad = ctx.createLinearGradient(0, 0, 0, 430);
+  grad.addColorStop(0, 'rgba(46,125,50,0.85)');
+  grad.addColorStop(1, 'rgba(129,199,132,0.25)');
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: YEARS,
+      datasets: [
+        {
+          label: 'Сумма активных температур',
+          data: VALUES,
+          backgroundColor: grad,
+          borderRadius: 3,
+          barPercentage: 0.9,
+          categoryPercentage: 1.0
+        },
+        {
+          label: 'Линейный тренд',
+          id: 'trend',
+          type: 'line',
+          data: TREND,
+          borderColor: '#e65100',
+          borderDash: [8, 6],
+          borderWidth: 3,
+          pointRadius: 0,
+          pointHoverRadius: 0,
+          fill: false,
+          spanGaps: true,
+          order: 0
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      resizeDelay: 150,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: '#37474f', boxWidth: 14 } },
+        tooltip: {
+          filter: function (item) { return item.dataset.id !== 'trend'; },
+          callbacks: {
+            label: function (item) { return ' ' + item.parsed.y.toFixed(1) + ' °C·сут'; }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 12, color: '#607d8b' },
+          grid: { display: false }
+        },
+        y: {
+          title: { display: true, text: '°C·сут', color: '#607d8b' },
+          ticks: { color: '#607d8b' },
+          grid: { color: 'rgba(0,0,0,0.06)' }
+        }
+      }
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
